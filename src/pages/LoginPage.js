@@ -2,15 +2,73 @@ import {
   Box,
   Button,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Heading,
   Input,
+  Spinner,
   Stack,
+  Text,
+  useToast,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useState } from "react";
 import { IoLogoPython } from "react-icons/io";
+import { Link } from "react-router-dom";
 
 const LoginPage = () => {
+  const toast = useToast();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error,setError] = useState(false)
+
+  const changeEmail = (e) => setEmail(e.target.value);
+  const changePassword = (e) => setPassword(e.target.value);
+
+  const loginUser = async () => {
+
+    if(!email || !password) {
+        setError(true)
+        return
+    }
+
+    setLoading(true);
+    try {
+
+      const response = await fetch("http://localhost:5000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // zamieniam na json obiekt user (wysylam go do bazy)
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+      // zamieniam response na odpowiedź, którą moge odczytać w JS
+      const data = await response.json();
+      toast({
+        title: data.message,
+        status: data.ok ? "success" : "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.log(error);
+      toast({
+        title: "Błąd serwera",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+        setError(false)
+    }
+
+    setLoading(false);
+  };
+
   return (
     <Box
       p={4}
@@ -22,30 +80,32 @@ const LoginPage = () => {
       mx="auto"
       flexDirection="column"
     >
-      <Heading 
-         display="flex" 
-         alignItems="center" 
-         fontSize="50px"
-         mb="30px"
-      >
-        <IoLogoPython color="#38a169"/>
+      <Heading display="flex" alignItems="center" fontSize="50px" mb="30px">
+        <IoLogoPython color="#38a169" />
         Tasker
       </Heading>
 
       <Stack spacing={3} w="100%">
-        <FormControl>
+        <FormControl isInvalid={error}>
           <FormLabel>Email</FormLabel>
-          <Input placeholder="Podaj adres email" />
+          <Input onChange={changeEmail} placeholder="Podaj adres email" />
+          {error && <FormErrorMessage>To pole jest wymagane</FormErrorMessage>}
         </FormControl>
 
-        <FormControl>
+        <FormControl isInvalid={error}>
           <FormLabel>Hasło</FormLabel>
-          <Input placeholder="Podaj swoje hasło" />
+          <Input onChange={changePassword} placeholder="Podaj swoje hasło" />
+          {error && <FormErrorMessage>To pole jest wymagane</FormErrorMessage>}
         </FormControl>
 
-        <Button colorScheme="green" size="lg">
-          Zaloguj
+        <Button onClick={loginUser} colorScheme="green" size="lg">
+          {loading ? <Spinner color="white.500" /> : "Zaloguj"}
         </Button>
+
+        <Text textAlign="center" mt="10px">
+          Nie masz konta? <Link style={{color:'#38a169'}} to="/register">Zarejestruj się</Link>
+        </Text>
+
       </Stack>
     </Box>
   );
