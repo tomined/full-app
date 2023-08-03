@@ -13,10 +13,13 @@ import {
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { IoLogoPython } from "react-icons/io";
-import { Link } from "react-router-dom";
+import { Link, useNavigate} from "react-router-dom";
+
+import httpClient from "../utils/httpClient";
 
 const LoginPage = () => {
   const toast = useToast();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,36 +31,32 @@ const LoginPage = () => {
   const loginUser = async () => {
 
     if(!email || !password) {
-        setError(true)
-        return
+        setError(true);
+        return;
     }
 
     setLoading(true);
     try {
 
-      const response = await fetch("http://localhost:5000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        // zamieniam na json obiekt user (wysylam go do bazy)
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
-      // zamieniam response na odpowiedź, którą moge odczytać w JS
-      const data = await response.json();
+      // TODO 2 AXIOS
+      const {data} = await httpClient.post("/login",{
+        email,
+        password
+      })
+      console.log(data)
+      
       toast({
         title: data.message,
         status: data.ok ? "success" : "error",
         duration: 3000,
         isClosable: true,
       });
+       // NOWE 2
+      navigate('/')
     } catch (error) {
       console.log(error);
       toast({
-        title: "Błąd serwera",
+        title: "Błędny login lub hasło",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -67,6 +66,7 @@ const LoginPage = () => {
     }
 
     setLoading(false);
+  
   };
 
   return (
