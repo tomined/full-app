@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - frontend
+      - production
   pull_request:
     branches:
       - main
